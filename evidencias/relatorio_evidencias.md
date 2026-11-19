@@ -7,6 +7,9 @@ Porta utilizada: 8182
 
 ## E01 - Preparação / configuração válida
 - Comandos executados:
+cp .env.example .env
+docker compose version
+docker compose config --quiet
 - Saída relevante (retire qualquer senha real):
 - Evidência anexada: E01_....png
 ![alt text](image-1.png)
@@ -98,6 +101,14 @@ $ docker compose up -d --build
 
 ## E02 - Configuração segura do Compose
 - Alterações no compose.yaml e .env.example:
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+    pids_limit: 100
+    mem_limit: 256m
+
 - Como conferi que backend e db não publicam portas no host:
 - Evidência anexada:
 compose.yaml:
@@ -210,8 +221,8 @@ data_net liga backend e db. Ela é internal: true, então não tem saída para f
 O backend participa das duas redes e faz a ponte: recebe requisições do frontend e consulta o db. O frontend não está na data_net, então não enxerga o banco. Se alguém comprometer o frontend, ainda precisa passar pelo backend para chegar ao db. O db também não publica a porta 5432, então nada de fora do Docker o alcança diretamente.
 
 ## E03 - Liveness, readiness e healthcheck
-- Respostas HTTP normais observadas:
-- Arquivos alterados:
+- Respostas HTTP normais observadas: 200, 201
+- Arquivos alterados: app.py
 - Evidência anexada:
 
 app.py
@@ -363,8 +374,8 @@ Connection: keep-alive
 
 ## E04 - Integração
 - Título único da tarefa: AV02-isaque-lopes-integracao
-- POST: código HTTP e trecho da resposta:
-- GET ou tela da tarefa:
+- POST: código HTTP e trecho da resposta: 
+- GET ou tela da tarefa: 
 - Caminho da requisição browser > ... > banco:
 
 ![alt text](image-9.png)
@@ -601,7 +612,7 @@ PS C:\Users\isaque_m_lopes\Downloads\unisenai-avaliacao-02-kit-main> docker comp
 
 ## E07 - Justificativa técnica
 1. Por que somente o frontend publica uma porta no host?
-Resposta: Por questão de segurança. Se outros serviços como o backend publicasse poderia comprometer a aplicação.
+Resposta: Por questões de segurança, apenas o frontend precisa expor uma porta no host, pois é o único serviço que necessita de acesso direto pelo navegador. O backend e o banco de dados podem permanecer restritos à rede interna do Docker, reduzindo a exposição de serviços e evitando acessos externos não autorizados.
 
 2. Por que .env não deve ser tratado como cofre de segredos?
 Resposta: O arquivo `.env` contém credenciais de acesso, como usuários, senhas, chaves de API e outras informações sensíveis. Caso seja publicado ou disponibilizado publicamente, essas informações poderão ser comprometidas, colocando em risco a segurança de toda a aplicação e dos serviços integrados.
@@ -613,9 +624,9 @@ Resposta: Não. Essa condição só controla a ordem de inicialização. O Compo
 Resposta: Não. Volume nomeado não persiste os dados, backup externo é uma cópia separada, em outro local.
 
 ## Checklist final
-- [ ] compose.yaml final
-- [ ] backend/app.py final
-- [ ] .env.example com valores estritamente fictícios
-- [ ] relatorio_evidencias.md preenchido
-- [ ] Evidências E01-E06
-- [ ] Sem .env nem dados sensíveis
+- [X] compose.yaml final
+- [X] backend/app.py final
+- [X] .env.example com valores estritamente fictícios
+- [X] relatorio_evidencias.md preenchido
+- [X] Evidências E01-E06
+- [X] Sem .env nem dados sensíveis
